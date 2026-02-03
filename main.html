@@ -56,6 +56,57 @@
     </div>
 
     <section>
+        <h2>Step 0. What is zk-SNARKs?</h2>
+        <p style="color: #666; margin-bottom: 20px;"><b>zk-SNARKs</b> 아키텍쳐</p>
+        
+        <div style="width: 100%; max-width: 850px; margin: 0 auto; background: #fff; border: 1px solid #edf2f7; border-radius: 12px; padding: 20px;">
+            <svg viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: auto;">
+                <rect x="325" y="10" width="150" height="60" rx="10" fill="#f8f9fa" stroke="#333" stroke-width="1.5"/>
+                <text x="400" y="45" text-anchor="middle" font-weight="700" font-size="14" fill="#003876">Trusted Setup</text>
+                
+                <rect x="100" y="170" width="180" height="110" rx="15" fill="#eef4ff" stroke="#003876" stroke-width="2"/>
+                <text x="190" y="220" text-anchor="middle" font-weight="700" font-size="16" fill="#003876">Prover</text>
+                <text x="190" y="245" text-anchor="middle" font-size="12" fill="#666">(사용자 브라우저)</text>
+                
+                <rect x="520" y="170" width="180" height="110" rx="15" fill="#f0fff4" stroke="#2e7d32" stroke-width="2"/>
+                <text x="610" y="220" text-anchor="middle" font-weight="700" font-size="16" fill="#2e7d32">Verifier</text>
+                <text x="610" y="245" text-anchor="middle" font-size="12" fill="#666">(Render Node 서버)</text>
+                
+                <path d="M 325 40 Q 190 40 190 160" fill="none" stroke="#a0aec0" stroke-width="1.5" stroke-dasharray="4" marker-end="url(#arrow)"/>
+                <text x="180" y="100" font-size="11" font-weight="600" fill="#4a5568">Prover Key (zkey)</text>
+                
+                <path d="M 475 40 Q 610 40 610 160" fill="none" stroke="#a0aec0" stroke-width="1.5" stroke-dasharray="4" marker-end="url(#arrow)"/>
+                <text x="540" y="100" font-size="11" font-weight="600" fill="#4a5568">Verifier Key (vKey)</text>
+                
+                <line x1="10" y1="225" x2="90" y2="225" stroke="#e53e3e" stroke-width="2" marker-end="url(#arrow)"/>
+                <text x="45" y="210" text-anchor="middle" font-size="11" font-weight="700" fill="#e53e3e">비밀번호(PW)</text>
+                
+                <line x1="280" y1="225" x2="510" y2="225" stroke="#2d3748" stroke-width="2.5" marker-end="url(#arrow)"/>
+                <text x="395" y="210" text-anchor="middle" font-size="14" font-weight="700" fill="#2d3748">Proof (수학적 증명)</text>
+                
+                <line x1="700" y1="225" x2="785" y2="225" stroke="#2e7d32" stroke-width="2" marker-end="url(#arrow)"/>
+                <text x="745" y="210" text-anchor="middle" font-size="12" font-weight="700" fill="#2e7d32">SUCCESS</text>
+                
+                <path d="M 400 380 Q 190 380 190 290" fill="none" stroke="#3ecf8e" stroke-width="2" marker-end="url(#arrow)"/>
+                <path d="M 400 380 Q 610 380 610 290" fill="none" stroke="#3ecf8e" stroke-width="2" marker-end="url(#arrow)"/>
+                <text x="400" y="370" text-anchor="middle" font-size="13" fill="#276749" font-weight="700">Public Info (DB 내 해시값)</text>
+
+                <defs>
+                    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+                        <path d="M0,0 L10,5 L0,10 Z" fill="#4a5568" />
+                    </marker>
+                </defs>
+            </svg>
+        </div>
+        
+        <div style="margin-top: 25px; padding: 20px; background: #f7fafc; border-radius: 8px; font-size: 0.9rem; line-height: 1.7; color: #4a5568; border: 1px solid #edf2f7;">
+            • <b>Prover(증명자):</b> 사용자의 브라우저입니다. 비밀번호를 알고 있다는 사실을 수학적으로 증명합니다.<br>
+            • <b>Verifier(검증자):</b> Render 서버입니다. 비밀번호를 보지 않고 증명서의 유효성만 판단합니다.<br>
+            • <b>Privacy:</b> 빨간색 화살표로 표시된 <b>비밀번호</b>는 절대로 Prover 영역을 벗어나지 않습니다.
+        </div>
+    </section>
+
+    <section>
         <h2>Step 1. 회원가입 (Registration)</h2>
         <div class="process-box">
             <div class="process-title">데이터 저장 단계</div>
