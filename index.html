@@ -3,48 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZK 인증 시스템 </title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500&family=Nanum+Myeongjo:wght@400;700&display=swap" rel="stylesheet">
+    <title>ZK-Auth: Secure Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;450;700&display=swap" rel="stylesheet">
     <script src="snarkjs.min.js"></script>
     <script src="circomlibjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --primary: #1a1a1a; --secondary: #6b6b6b; --accent: #d4af37; --light: #f8f8f8; --border: #e0e0e0; }
+        :root { 
+            --yonsei-blue: #003876; 
+            --gold: #d4af37; 
+            --supabase: #3ecf8e; 
+            --render: #46e3b7; 
+            --bg: #f4f7f9; 
+            --white: #ffffff;
+            --border: #dee2e6;
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Noto Sans KR', sans-serif; background: var(--light); color: var(--primary); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .container { max-width: 480px; width: 100%; }
-        .header { text-align: center; margin-bottom: 40px; }
-        .title { font-family: 'Nanum Myeongjo', serif; font-size: 2.2rem; font-weight: 700; margin-bottom: 10px; }
-        .subtitle { font-size: 0.8rem; color: var(--secondary); text-transform: uppercase; letter-spacing: 4px; }
-        .card { background: white; border-radius: 4px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); padding: 40px; }
-        .tab-container { display: flex; margin-bottom: 30px; border-bottom: 1px solid var(--border); }
-        .tab { flex: 1; padding: 15px; background: none; border: none; font-family: inherit; font-size: 0.9rem; color: var(--secondary); cursor: pointer; position: relative; }
-        .tab.active { color: var(--primary); font-weight: 500; }
-        .tab.active::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 2px; background: var(--accent); }
-        .form-group { margin-bottom: 25px; }
-        .label { display: block; font-size: 0.75rem; color: var(--secondary); letter-spacing: 1px; margin-bottom: 8px; }
-        .input { width: 100%; padding: 12px 0; background: none; border: none; border-bottom: 1px solid var(--border); font-family: inherit; font-size: 1.1rem; outline: none; transition: border-color 0.3s; }
-        .input:focus { border-bottom-color: var(--accent); }
-        .submit-btn { width: 100%; padding: 18px; background: var(--primary); border: none; color: white; font-family: inherit; font-size: 0.9rem; letter-spacing: 2px; cursor: pointer; transition: 0.3s; }
-        .submit-btn:hover { background: #333; }
-        .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .progress-area { margin-top: 20px; display: none; border-top: 1px dotted var(--border); padding-top: 15px; }
+        body { font-family: 'Pretendard', sans-serif; background: var(--bg); color: #333; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        
+        .container { max-width: 450px; width: 100%; }
+        
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 { color: var(--yonsei-blue); font-size: 2rem; letter-spacing: -1px; margin-bottom: 8px; }
+        .header p { font-size: 0.85rem; color: #666; letter-spacing: 2px; text-transform: uppercase; }
+
+        .card { background: var(--white); border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); padding: 40px; border: 1px solid var(--border); }
+        
+        /* 탭 디자인 */
+        .tab-container { display: flex; margin-bottom: 30px; background: #f1f3f5; border-radius: 8px; padding: 4px; }
+        .tab { flex: 1; padding: 12px; background: none; border: none; font-family: inherit; font-size: 0.9rem; color: #666; cursor: pointer; border-radius: 6px; transition: 0.2s; }
+        .tab.active { background: var(--white); color: var(--yonsei-blue); font-weight: 700; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+
+        /* 입력 폼 */
+        .form-group { margin-bottom: 20px; }
+        .label { display: block; font-size: 0.8rem; color: var(--yonsei-blue); font-weight: 700; margin-bottom: 8px; }
+        .input { width: 100%; padding: 14px 16px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; font-family: inherit; font-size: 1rem; outline: none; transition: 0.2s; }
+        .input:focus { border-color: var(--yonsei-blue); background: var(--white); box-shadow: 0 0 0 3px rgba(0,56,118,0.1); }
+
+        /* 버튼 */
+        .submit-btn { width: 100%; padding: 16px; background: var(--yonsei-blue); border: none; color: white; border-radius: 8px; font-family: inherit; font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        .submit-btn:hover { background: #002d5f; transform: translateY(-1px); }
+        .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        /* 프로세스 영역 */
+        .progress-area { margin-top: 25px; border-top: 1px dashed var(--border); padding-top: 20px; display: none; }
         .progress-area.show { display: block; }
-        .progress-item { padding: 5px 0; font-size: 0.85rem; color: var(--secondary); display: flex; align-items: center; gap: 10px; }
-        .loading-dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; animation: pulse 1.5s infinite; }
+        .progress-item { padding: 6px 0; font-size: 0.85rem; color: #555; display: flex; align-items: center; gap: 10px; }
+        .loading-dot { width: 6px; height: 6px; background: var(--gold); border-radius: 50%; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
-        .result-box { margin-top: 20px; padding: 15px; text-align: center; border-radius: 4px; font-size: 0.9rem; }
-        .result-box.success { background: #f0f8f0; color: #2d5016; border: 1px solid #9bc47d; }
-        .result-box.error { background: #fdf0f0; color: #8b1e1e; border: 1px solid #e8a4a4; }
-        .user-list { margin-top: 20px; font-size: 0.75rem; color: var(--secondary); text-align: center; border-top: 1px solid #eee; padding-top: 15px; }
+
+        /* 결과 메시지 */
+        .result-box { margin-top: 20px; padding: 14px; text-align: center; border-radius: 8px; font-size: 0.9rem; font-weight: 500; }
+        .result-box.success { background: #e7f9ed; color: #1e7e34; border: 1px solid #b2f2bb; }
+        .result-box.error { background: #fff5f5; color: #c92a2a; border: 1px solid #ffc9c9; }
+
+        .footer-info { margin-top: 25px; font-size: 0.75rem; color: #999; text-align: center; border-top: 1px solid #f1f3f5; padding-top: 20px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <h1 class="title">영지식 로그인</h1>
-        <p class="subtitle">Based on zkSNARKs</p>
+        <h1>YONSEI ZK-AUTH</h1>
+        <p>Zero-Knowledge Authentication</p>
     </div>
 
     <div class="card">
@@ -54,12 +75,12 @@
         </div>
 
         <div class="form-group">
-            <label class="label">아이디 (ID)</label>
+            <label class="label">ID (학번/아이디)</label>
             <input type="text" class="input" id="usernameField" placeholder="아이디를 입력하세요">
         </div>
 
         <div class="form-group">
-            <label class="label">비밀번호 (숫자)</label>
+            <label class="label">PASSWORD (숫자)</label>
             <input type="password" class="input" id="passwordField" inputmode="numeric" placeholder="숫자 비밀번호를 입력하세요">
         </div>
 
@@ -70,12 +91,11 @@
         <div class="progress-area" id="progressArea"></div>
         <div id="resultArea"></div>
         
-        <div class="user-list" id="userListArea">사용자 정보를 불러오는 중...</div>
+        <div class="footer-info" id="userListArea">사용자 데이터를 동기화 중...</div>
     </div>
 </div>
 
 <script>
-    // --- 설정 (기존 Supabase 정보 유지) ---
     const SUPABASE_URL = 'https://vqepxmbxjmtgfebllahs.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxZXB4bWJ4am10Z2ZlYmxsYWhzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk4NzAwMTIsImV4cCI6MjA4NTQ0NjAxMn0.gNqvcS6xqVB6aXMxIKEWkneiTfuEqVv-montaMS2sl0';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -131,10 +151,10 @@
         submitBtn.disabled = true;
 
         try {
-            addProgress('보안 해시 생성 중...');
+            addProgress('Poseidon 보안 해시 생성 중...');
             const hashStr = poseidon.F.toString(poseidon([BigInt(password)]));
 
-            addProgress('DB에 사용자 등록 중...');
+            addProgress('Supabase DB에 사용자 등록 중...');
             const { error } = await _supabase
                 .from('users')
                 .insert([{ id: username, hash: hashStr }]);
@@ -142,12 +162,12 @@
             if (error) throw error;
 
             addProgress('가입 완료!', 'success');
-            resultArea.innerHTML = `<div class="result-box success">가입 성공! 이제 로그인 탭에서 접속하세요.</div>`;
+            resultArea.innerHTML = `<div class="result-box success">가입 성공! 로그인 탭에서 접속하세요.</div>`;
             updateUserList();
             setTimeout(() => switchTab('login'), 1000);
         } catch (err) {
             console.error(err);
-            showError('이미 사용 중인 아이디거나 DB 에러입니다.');
+            showError('이미 사용 중이거나 데이터베이스 오류입니다.');
         } finally { submitBtn.disabled = false; }
     }
 
@@ -159,10 +179,10 @@
         clearAll();
         submitBtn.disabled = true;
 
-        let proof, publicSignals; // 밖에서 사용할 수 있게 변수 선언
+        let proof, publicSignals;
 
         try {
-            addProgress('DB에서 인증 정보 확인 중...');
+            addProgress('DB에서 인증 기준값(SavedHash) 확인 중...');
             const { data, error } = await _supabase
                 .from('users')
                 .select('hash')
@@ -175,8 +195,7 @@
                 return;
             }
 
-            // --- [단계 1] 브라우저 내 증명 생성 ---
-            addProgress('내 브라우저에서 영지식 증명(Proof) 생성 중...');
+            addProgress('Local 기기에서 영지식 증명(Proof) 연산 중...');
             try {
                 const result = await snarkjs.groth16.fullProve(
                     { 
@@ -190,14 +209,12 @@
                 publicSignals = result.publicSignals;
             } catch (proofErr) {
                 console.error("Proof Generation Error:", proofErr);
-                // 비밀번호가 틀리면 수학적으로 증명 생성이 불가능하므로 여기서 에러가 납니다.
-                showError('인증 실패: 잘못된 비밀번호입니다.');
+                showError('인증 실패: 수학적 증명이 일치하지 않습니다.');
                 submitBtn.disabled = false;
-                return; // 여기서 함수 종료
+                return;
             }
 
-            // --- [단계 2] 서버 전송 및 검증 ---
-            addProgress('로컬 검증 서버로 데이터 전송 중...');
+            addProgress('Render 검증 서버로 증명서 전송 중...');
             try {
                 const response = await fetch('https://auth-v3sq.onrender.com/verify-proof', {
                     method: 'POST',
@@ -210,18 +227,16 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    addProgress('인증 최종 승인 완료!', 'success');
-                    
+                    addProgress('서버 최종 검증 승인!', 'success');
                     setTimeout(() => {
                         window.location.href = `main.html?user=${encodeURIComponent(username)}`;
-                    }, 1000); 
-                    
+                    }, 800); 
                 } else {
-                    showError('서버 검증 실패: 유효하지 않은 증명입니다.');
+                    showError('서버 검증 실패: 위조된 증명서입니다.');
                 }
             } catch (fetchErr) {
                 console.error("Fetch Error:", fetchErr);
-                showError('네트워크 오류: Render 서버 상태를 확인하세요.');
+                showError('네트워크 오류: 검증 서버 응답이 없습니다.');
             }
 
         } catch (err) {
