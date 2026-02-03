@@ -41,42 +41,42 @@
 
 <header>
     <button class="logout-btn" onclick="location.href='index.html'">LOGOUT</button>
-    <h1>ZK-Auth 실시간 데이터 워크플로우</h1>
+    <h1>ZK-Auth 작동 방식</h1>
     <div class="system-status" id="welcomeUser">인증 시스템 가동 중</div>
 </header>
 
 <div class="container">
     
     <div class="success-banner">
-        🔒 영지식 인증 성공: 사용자의 비밀번호는 브라우저 외부로 단 1바이트도 전송되지 않았습니다.
+        영지식 인증 성공: 사용자의 비밀번호는 브라우저 위부로 벗어나지 않았습니다.
     </div>
 
     <section>
         <h2>Step 1. 회원가입 (Registration)</h2>
         <div class="process-box">
-            <div class="process-title">💾 데이터 저장 단계</div>
-            <p>입력한 비밀번호를 <b>Poseidon Hash</b>로 즉시 변환하여 DB에 저장합니다.</p>
+            <div class="process-title">데이터 저장 단계</div>
+            <p>입력한 비밀번호를 <b>Poseidon Hash</b>로 변환하여 DB에 저장합니다.</p>
             <div class="data-flow">
                 <span class="data-tag">Browser</span> 
                 <span class="arrow-text">── { ID, Poseidon(PW) } ──▶</span> 
                 <span class="data-tag" style="background: #e6fffa; border-color: var(--supabase);">Supabase DB</span>
             </div>
-            <p style="font-size: 0.8rem; color: #888; margin-top: 10px;">* 서버는 실제 비밀번호의 원본을 알 수 없으며 수학적 지문(Hash)만 소유합니다.</p>
+            <p style="font-size: 0.8rem; color: #888; margin-top: 10px;">* 서버는 실제 비밀번호의 원본을 알 수 없으며 Hash값만 저장합니다.</p>
         </div>
     </section>
 
     <section>
         <h2>Step 2. 로그인 및 증명 생성 (Proving)</h2>
         <div class="process-box">
-            <div class="process-title">🧠 브라우저 내 증명 연산 (Client-side)</div>
-            <p>ID에 대응된 해시를 DB에서 로드한 후, 사용자의 기기 내에서 수학적 증명을 생성합니다.</p>
+            <div class="process-title">브라우저 내 증명 연산 (Client-side)</div>
+            <p>로그인 요청 시 ID에 대응된 Hash(PW)를 DB에서 로드한 후, 사용자의 기기 내에서 수학적 증명을 생성합니다.</p>
             <div class="data-flow">
                 <span class="data-tag" style="background: #e6fffa;">Supabase</span> 
                 <span class="arrow-text">── [SavedHash] ──▶</span> 
                 <span class="data-tag" style="background: #fff9db; border-color: var(--gold);">Browser (snarkjs)</span>
             </div>
             <div class="internal-op">
-                <b>내부 연산:</b> prove(입력PW, SavedHash, proving_key.zkey) ➔ <span style="color: #e03131; font-weight: bold;">Proof</span> 생성 완료
+                <b>내부 연산:</b> prove(입력PW, SavedHash, proving.zkey) ➔ <span style="color: #3182ce; font-weight: bold;">Proof</span> 생성 완료
             </div>
         </div>
     </section>
@@ -84,27 +84,26 @@
     <section>
         <h2>Step 3. 검증 및 로그인 성공 (Verification)</h2>
         <div class="process-box">
-            <div class="process-title">🛡️ Render 서버 검증 (Server-side)</div>
-            <p>생성된 증명서를 <b>Render Node 서버</b>에 전송하여 위조 여부를 판독합니다.</p>
+            <div class="process-title">서버 증명 검증 (Server-side)</div>
+            <p>생성된 증명서를 <b>Render Node 서버</b>에 전송하여 검증을 진행합니다.</p>
             <div class="data-flow">
                 <span class="data-tag" style="background: #fff9db;">Browser</span> 
                 <span class="arrow-text">── [Proof, PublicSignals] ──▶</span> 
                 <span class="data-tag" style="background: #e3fafd; border-color: var(--render);">Render Server</span>
             </div>
             <div class="internal-op" style="background: #f0f5ff; border-color: #bee3f8;">
-                <b>내부 연산:</b> verify(Proof, PublicSignals, verification_key.json) ➔ <span style="color: #3182ce; font-weight: bold;">True</span> 반환
+                <b>내부 연산:</b> verify(Proof, PublicSignals, verify.key) ➔ <span style="color: #3182ce; font-weight: bold;">True</span> 반환
             </div>
             <div class="data-flow" style="margin-top: 15px;">
                 <span class="data-tag" style="background: #e3fafd;">Render Server</span> 
                 <span class="arrow-text">── "Success Token" ──▶</span> 
-                <span class="data-tag">Browser (Main Entry)</span>
+                <span class="data-tag">Browser</span>
             </div>
         </div>
     </section>
 
     <div class="notice-box">
-        <p>본 사이트는 <b>zk-SNARKs</b> 기술 시연을 위해 제작된 데모 프로젝트입니다.</p>
-        <p>사용자 편의성보다 기술적 매커니즘 전달에 집중하여 최소한의 페이지 구성요소만 갖추고 있습니다.</p>
+        <p>본 사이트는 <b>zk-SNARKs</b> 기술 시연을 위해 제작된 데모 버전으로 최소한의 기능만 탑재하였습니다.</p>
         <div class="contact">
             Contact: <b>sunjun0411@yonsei.ac.kr</b>
         </div>
