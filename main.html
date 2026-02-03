@@ -47,12 +47,8 @@
 
 <div class="container">
     
-    <div style="background: #ebf8ff; border: 1px solid #bee3f8; color: #2b6cb0; padding: 12px; border-radius: 8px; text-align: center; font-size: 0.9rem; margin-bottom: 15px; font-weight: 500;">
+    <div style="background: #e7f9ed; border: 1px solid #bee3f8; color: #2b6cb0; padding: 12px; border-radius: 8px; text-align: center; font-size: 0.9rem; margin-bottom: 15px; font-weight: 500;">
         해당 페이지는 <b>PC 환경</b>에 최적화되어 있습니다.
-    </div>
-
-    <div class="success-banner">
-        영지식 인증 성공: 사용자의 비밀번호는 브라우저 외부로 벗어나지 않았습니다.
     </div>
 
     <section>
@@ -131,7 +127,7 @@
                 <span class="data-tag" style="background: #fff9db; border-color: var(--gold);">Browser (snarkjs)</span>
             </div>
             <div class="internal-op" style="background: #f0f5ff; border-color: #bee3f8;">
-                <b>내부 연산:</b> prove(입력PW, SavedHash, proving.zkey) ➔ <span style="color: #3182ce; font-weight: bold;">Proof</span> 생성 완료
+                <b>내부 연산:</b> prove(입력PW, SavedHash, Prover.zkey) ➔ <span style="color: #3182ce; font-weight: bold;">Proof</span> 생성 완료
             </div>
         </div>
     </section>
@@ -147,7 +143,7 @@
                 <span class="data-tag" style="background: #e3fafd; border-color: var(--render);">Render Server</span>
             </div>
             <div class="internal-op" style="background: #f0f5ff; border-color: #bee3f8;">
-                <b>내부 연산:</b> verify(Proof, PublicSignals, verify.key) ➔ <span style="color: #3182ce; font-weight: bold;">True</span> 반환
+                <b>내부 연산:</b> verify(Proof, PublicSignals, Verifier.vkey) ➔ <span style="color: #3182ce; font-weight: bold;">True</span> 반환
             </div>
             <div class="data-flow" style="margin-top: 15px;">
                 <span class="data-tag" style="background: #e3fafd;">Render Server</span> 
