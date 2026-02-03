@@ -3,135 +3,153 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZK-Auth System Architecture & Analysis</title>
+    <title>ZK-Auth Technical Showcase</title>
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;450;700&display=swap" rel="stylesheet">
     <style>
-        :root { --yonsei-blue: #003876; --gold: #d4af37; --render-teal: #46e3b7; --supabase-green: #3ecf8e; --tech-gray: #f4f7f9; --danger: #e74c3c; }
-        body { font-family: 'Pretendard', sans-serif; background: var(--tech-gray); margin: 0; color: #333; line-height: 1.6; }
+        :root { --yonsei-blue: #003876; --gold: #d4af37; --supabase: #3ecf8e; --render: #46e3b7; --bg: #f8f9fc; }
+        body { font-family: 'Pretendard', sans-serif; background: var(--bg); margin: 0; color: #333; }
         
-        header { background: var(--yonsei-blue); color: white; padding: 50px 20px; text-align: center; border-bottom: 5px solid var(--gold); position: relative; }
-        header h1 { margin: 0; font-size: 2.2rem; }
-        .system-status { display: inline-block; background: rgba(255,255,255,0.15); padding: 8px 20px; border-radius: 30px; font-size: 0.9rem; margin-top: 15px; border: 1px solid rgba(255,255,255,0.3); }
-
-        /* 로그아웃 버튼 */
-        .logout-btn { position: absolute; top: 20px; right: 20px; padding: 10px 20px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.5); border-radius: 5px; cursor: pointer; font-size: 0.8rem; transition: 0.3s; }
-        .logout-btn:hover { background: var(--danger); border-color: var(--danger); }
+        header { background: var(--yonsei-blue); color: white; padding: 40px 20px; text-align: center; border-bottom: 5px solid var(--gold); position: relative; }
+        .logout-btn { position: absolute; top: 20px; right: 20px; padding: 8px 16px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.4); border-radius: 4px; cursor: pointer; }
 
         .container { max-width: 1100px; margin: 40px auto; padding: 0 20px; }
-        
-        section { background: white; border-radius: 15px; padding: 40px; margin-bottom: 35px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
-        h2 { color: var(--yonsei-blue); border-left: 5px solid var(--yonsei-blue); padding-left: 15px; margin-bottom: 25px; font-size: 1.6rem; }
+        section { background: white; border-radius: 16px; padding: 40px; margin-bottom: 30px; box-shadow: 0 8px 30px rgba(0,0,0,0.05); }
+        h2 { color: var(--yonsei-blue); display: flex; align-items: center; gap: 10px; margin-bottom: 30px; }
+        h2::before { content: ''; width: 6px; height: 24px; background: var(--gold); display: inline-block; border-radius: 3px; }
 
-        /* 비교 섹션 스타일 */
-        .comparison-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 20px; }
-        .comp-card { padding: 30px; border-radius: 12px; position: relative; overflow: hidden; }
-        .comp-card.old { background: #fff5f5; border: 1px solid #ffc9c9; }
-        .comp-card.new { background: #f0f7ff; border: 1px solid #b3d7ff; }
-        .comp-card h3 { margin-top: 0; display: flex; align-items: center; gap: 10px; }
-        .vs-circle { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); background: white; border: 2px solid #ddd; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; z-index: 10; }
+        /* 시각적 워크플로우 */
+        .visual-flow { display: flex; justify-content: space-between; align-items: center; margin: 40px 0; position: relative; }
+        .node { text-align: center; z-index: 2; width: 180px; }
+        .node-icon { width: 80px; height: 80px; background: white; border: 3px solid #eee; border-radius: 20px; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 2rem; transition: 0.3s; }
+        .node.active .node-icon { border-color: var(--yonsei-blue); box-shadow: 0 0 20px rgba(0,56,118,0.1); }
+        .node b { display: block; color: var(--yonsei-blue); font-size: 1.1rem; }
+        .node span { font-size: 0.8rem; color: #777; }
 
-        .flow-item { display: flex; align-items: center; margin-bottom: 20px; }
-        .flow-label { width: 150px; font-weight: 700; color: var(--yonsei-blue); font-size: 0.9rem; }
-        .flow-data { flex-grow: 1; background: #f8f9fa; padding: 12px; border-radius: 6px; font-family: monospace; font-size: 0.85rem; border: 1px solid #eee; }
+        .arrow { flex-grow: 1; height: 2px; background: #ddd; position: relative; margin: 0 -10px; margin-bottom: 40px; }
+        .arrow::after { content: '▶'; position: absolute; right: 0; top: -10px; color: #ddd; }
+        .data-label { position: absolute; top: -30px; width: 100%; text-align: center; font-size: 0.75rem; color: #555; font-weight: 600; background: #fff; padding: 2px 5px; border: 1px solid #eee; border-radius: 4px; }
 
-        .tech-table { width: 100%; border-collapse: collapse; }
-        .tech-table th { background: #f1f3f5; padding: 15px; text-align: left; font-size: 0.9rem; }
-        .tech-table td { padding: 15px; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+        /* 데이터 상세 그리드 */
+        .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .data-card { padding: 20px; border-radius: 12px; border: 1px solid #eee; background: #fafafa; }
+        .data-card h4 { margin: 0 0 10px 0; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
+        .code-block { background: #2d2d2d; color: #ccc; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 0.85rem; overflow-x: auto; }
+        .highlight { color: var(--render-teal); font-weight: bold; }
 
-        @media (max-width: 768px) { .comparison-grid { grid-template-columns: 1fr; } .vs-circle { display: none; } }
+        .comparison-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .comparison-table th, td { padding: 15px; border-bottom: 1px solid #eee; text-align: left; }
+        .comparison-table th { color: var(--yonsei-blue); font-size: 0.9rem; }
     </style>
 </head>
 <body>
 
 <header>
-    <button class="logout-btn" onclick="logout()">LOGOUT</button>
-    <h1>ZK-Auth: 영지식 증명 기반 보안 인증 시스템</h1>
-    <div class="system-status" id="welcomeUser">Verification Success • Protocol Active</div>
+    <button class="logout-btn" onclick="location.href='index.html'">로그아웃</button>
+    <h1>영지식 인증 시스템 아키텍처</h1>
+    <div class="system-status" id="welcomeUser">사용자 인증 완료</div>
 </header>
 
 <div class="container">
     
     <section>
-        <h2>1. 인증 패러다임의 변화 (Traditional vs ZK)</h2>
-        <div style="position: relative;">
-            <div class="vs-circle">VS</div>
-            <div class="comparison-grid">
-                <div class="comp-card old">
-                    <h3 style="color: #c92a2a;">❌ 기존 방식 (ID/PW)</h3>
-                    <ul style="font-size: 0.9rem; padding-left: 20px;">
-                        <li>사용자의 <b>실제 비밀번호(또는 해시)</b>가 네트워크를 통해 서버로 전송됨</li>
-                        <li>서버가 사용자의 비밀을 소유하고 대조함</li>
-                        <li>서버 DB 유출 시, 사용자의 모든 보안 정보가 노출됨</li>
-                        <li><b>Trust-based:</b> 서비스 업체의 보안 수준을 믿어야 함</li>
-                    </ul>
+        <h2>로그인 및 검증 워크플로우</h2>
+        <p style="color: #666; margin-bottom: 40px;">사용자의 비밀번호는 브라우저를 떠나지 않으며, 서버는 수학적 증명만을 전달받습니다.</p>
+        
+        <div class="visual-flow">
+            <div class="node active">
+                <div class="node-icon">💻</div>
+                <b>Browser</b>
+                <span>Client Side</span>
+            </div>
+            
+            <div class="arrow">
+                <div class="data-label">① ID 전송</div>
+            </div>
+
+            <div class="node">
+                <div class="node-icon" style="border-color: var(--supabase);">📁</div>
+                <b>Supabase</b>
+                <span>Database</span>
+            </div>
+
+            <div class="arrow">
+                <div class="data-label">② SavedHash 수신</div>
+            </div>
+
+            <div class="node">
+                <div class="node-icon" style="border-color: var(--render);">🚀</div>
+                <b>Render</b>
+                <span>Node.js Server</span>
+            </div>
+        </div>
+
+        <div class="data-grid">
+            <div class="data-card">
+                <h4 style="color: var(--yonsei-blue);">Step 3: 증명 생성 (Proving)</h4>
+                <p style="font-size: 0.85rem;">브라우저 내에서 <b>비밀번호(Private)</b>와 <b>해시(Public)</b>를 조합하여 증명을 생성합니다.</p>
+                <div class="code-block">
+                    { <br>
+                    &nbsp;&nbsp;input: [PW, SavedHash],<br>
+                    &nbsp;&nbsp;tool: "auth_0001.zkey",<br>
+                    &nbsp;&nbsp;output: <span class="highlight">"Proof_Object"</span><br>
+                    }
                 </div>
-                <div class="comp-card new">
-                    <h3 style="color: var(--yonsei-blue);">✅ 영지식 방식 (ZK-Auth)</h3>
-                    <ul style="font-size: 0.9rem; padding-left: 20px;">
-                        <li>비밀번호는 사용자 기기를 <b>절대 벗어나지 않음</b></li>
-                        <li>서버는 비밀을 보지 않고 <b>수학적 증명</b>만 확인</li>
-                        <li>서버가 해킹되어도 유출될 비밀번호 자체가 없음</li>
-                        <li><b>Math-based:</b> 인간이 아닌 수학적 무결성을 신뢰함</li>
-                    </ul>
+            </div>
+            <div class="data-card">
+                <h4 style="color: var(--render);">Step 4: 서버 검증 (Verify)</h4>
+                <p style="font-size: 0.85rem;">Render 서버는 비밀번호 없이 <b>증명서</b>가 수학적으로 참인지 판독합니다.</p>
+                <div class="code-block">
+                    { <br>
+                    &nbsp;&nbsp;check: "verification_key.json",<br>
+                    &nbsp;&nbsp;verify: (Proof, PublicSignals),<br>
+                    &nbsp;&nbsp;result: <span class="highlight">true / false</span><br>
+                    }
                 </div>
             </div>
         </div>
     </section>
 
     <section>
-        <h2>2. 시스템 아키텍처 상세 (Infra Stack)</h2>
-        
-        <div class="workflow-diagram" style="border: 1px solid #eee; padding: 25px; border-radius: 12px; margin-top: 20px;">
-            <div class="flow-item">
-                <div class="flow-label">Storage (Supabase)</div>
-                <div class="flow-data">Poseidon Hash 기반 사용자 DB 관리 (Cloud PostgreSQL)</div>
-            </div>
-            <div class="flow-item">
-                <div class="flow-label">Verifier (Render)</div>
-                <div class="flow-data">Node.js / Express 환경의 독립적 검증 서버 (Groth16 알고리즘)</div>
-            </div>
-            <div class="flow-item">
-                <div class="flow-label">Client (Browser)</div>
-                <div class="flow-data">SnarkJS를 이용한 브라우저 내 증명 생성 (Edge Computing)</div>
-            </div>
-        </div>
-    </section>
-
-    <section>
-        <h2>3. 실시간 인증 워크플로우</h2>
-        
-        <div class="workflow-diagram">
-            <div class="flow-item">
-                <div class="flow-label">① 가입 단계</div>
-                <div class="flow-data">Password → [Poseidon Hash] → Supabase 저장</div>
-            </div>
-            <div class="flow-item">
-                <div class="flow-label">② 인증 요청</div>
-                <div class="flow-data">ID 입력 → Supabase에서 SavedHash(Public Signal) 로드</div>
-            </div>
-            <div class="flow-item">
-                <div class="flow-label">③ 증명 생성</div>
-                <div class="flow-data">Client 연산: { Password, SavedHash, zKey } → Proof 생성</div>
-            </div>
-            <div class="flow-item" style="border: 2px solid var(--render-teal); padding: 10px; border-radius: 8px; background: #f0fffb;">
-                <div class="flow-label">④ 최종 검증</div>
-                <div class="flow-data">Render Server: snarkjs.verify(vKey, Proof) → 인증 완료</div>
-            </div>
-        </div>
+        <h2>기존 방식과의 비교 분석</h2>
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th>비교 항목</th>
+                    <th>기존 로그인 방식 (Centralized)</th>
+                    <th>영지식 인증 방식 (ZK-Auth)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><b>비밀 데이터 전송</b></td>
+                    <td style="color: #e74c3c;">PW 또는 해시가 서버로 전송됨</td>
+                    <td style="color: #27ae60; font-weight: bold;">어떠한 비밀 정보도 전송되지 않음</td>
+                </tr>
+                <tr>
+                    <td><b>서버의 역할</b></td>
+                    <td>사용자의 비밀번호를 보관 및 대조</td>
+                    <td>증명의 수학적 무결성만 확인</td>
+                </tr>
+                <tr>
+                    <td><b>해킹 시 피해</b></td>
+                    <td>사용자 비밀번호(해시) 유출 위험</td>
+                    <td>유출될 비밀 정보 자체가 존재하지 않음</td>
+                </tr>
+                <tr>
+                    <td><b>보안의 근거</b></td>
+                    <td>관리자의 보안 정책 (Trust)</td>
+                    <td>수학적 암호화 알고리즘 (Math)</td>
+                </tr>
+            </tbody>
+        </table>
     </section>
 
 </div>
 
 <script>
     const urlParams = new URLSearchParams(window.location.search);
-    const username = urlParams.get('user') || 'User';
-    document.getElementById('welcomeUser').textContent = `Status: Verified for ${username.toUpperCase()}`;
-
-    function logout() {
-        if(confirm("로그아웃 하시겠습니까?")) {
-            location.href = 'index.html';
-        }
-    }
+    const username = urlParams.get('user') || 'USER';
+    document.getElementById('welcomeUser').textContent = `STATUS: ${username.toUpperCase()} VERIFIED`;
 </script>
 
 </body>
