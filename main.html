@@ -10,26 +10,31 @@
         body { font-family: 'Pretendard', sans-serif; background: var(--bg); margin: 0; color: #333; }
         
         header { background: var(--yonsei-blue); color: white; padding: 40px 20px; text-align: center; border-bottom: 5px solid var(--gold); position: relative; }
-        .logout-btn { position: absolute; top: 20px; right: 20px; padding: 8px 16px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.4); border-radius: 4px; cursor: pointer; }
+        .logout-btn { position: absolute; top: 20px; right: 20px; padding: 8px 16px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.4); border-radius: 4px; cursor: pointer; transition: 0.3s; }
+        .logout-btn:hover { background: rgba(255,255,255,0.2); }
 
         .container { max-width: 1100px; margin: 40px auto; padding: 0 20px; }
         section { background: white; border-radius: 16px; padding: 40px; margin-bottom: 30px; box-shadow: 0 8px 30px rgba(0,0,0,0.05); }
-        h2 { color: var(--yonsei-blue); border-left: 5px solid var(--gold); padding-left: 15px; margin-bottom: 30px; }
+        h2 { color: var(--yonsei-blue); border-left: 5px solid var(--gold); padding-left: 15px; margin-bottom: 30px; font-size: 1.5rem; }
 
         /* 프로세스 맵 스타일 */
         .process-box { border: 1px solid #eee; border-radius: 12px; padding: 25px; margin-bottom: 20px; background: #fff; position: relative; }
         .process-title { font-weight: 700; color: var(--yonsei-blue); margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
         
-        .data-flow { display: flex; align-items: center; gap: 15px; background: #f8f9fa; padding: 15px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 0.9rem; margin-top: 10px; }
+        .data-flow { display: flex; align-items: center; gap: 15px; background: #f8f9fa; padding: 15px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 0.9rem; margin-top: 10px; flex-wrap: wrap; }
         .data-tag { background: #eef2f7; color: #444; padding: 4px 10px; border-radius: 4px; border: 1px solid #d1d9e4; font-weight: 600; }
-        .arrow-text { color: var(--yonsei-blue); font-weight: bold; font-size: 1.2rem; }
+        .arrow-text { color: var(--yonsei-blue); font-weight: bold; font-size: 1.1rem; }
 
-        /* 로그인 성공 배지 */
+        /* 내부 연산 박스 */
+        .internal-op { margin-top: 15px; padding: 12px; background: #fff5f5; border-radius: 6px; font-size: 0.85rem; border: 1px dashed #feb2b2; }
+
+        /* 상단 배지 */
         .success-banner { background: #e7f9ed; border: 1px solid var(--supabase); color: #1e7e34; padding: 20px; border-radius: 12px; text-align: center; font-weight: 700; margin-bottom: 30px; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
-        th { font-size: 0.85rem; color: #888; text-transform: uppercase; }
+        /* 안내문 및 푸터 */
+        .notice-box { text-align: center; padding: 30px; color: #718096; line-height: 1.6; }
+        .notice-box p { margin: 5px 0; font-size: 0.95rem; }
+        .contact { font-size: 0.85rem; color: #a0aec0; margin-top: 15px; }
     </style>
 </head>
 <body>
@@ -43,35 +48,35 @@
 <div class="container">
     
     <div class="success-banner">
-        🎉 인증 성공: 사용자의 비밀번호는 브라우저 외부로 단 1바이트도 전송되지 않았습니다.
+        🔒 영지식 인증 성공: 사용자의 비밀번호는 브라우저 외부로 단 1바이트도 전송되지 않았습니다.
     </div>
 
     <section>
         <h2>Step 1. 회원가입 (Registration)</h2>
         <div class="process-box">
             <div class="process-title">💾 데이터 저장 단계</div>
-            <p>비밀번호를 해시화하여 <b>Supabase</b>에 영구 저장합니다.</p>
+            <p>입력한 비밀번호를 <b>Poseidon Hash</b>로 즉시 변환하여 DB에 저장합니다.</p>
             <div class="data-flow">
                 <span class="data-tag">Browser</span> 
                 <span class="arrow-text">── { ID, Poseidon(PW) } ──▶</span> 
-                <span class="data-tag" style="background: #e6fffa;">Supabase DB</span>
+                <span class="data-tag" style="background: #e6fffa; border-color: var(--supabase);">Supabase DB</span>
             </div>
-            <p style="font-size: 0.8rem; color: #888; margin-top: 10px;">* 서버는 실제 비밀번호 대신 수학적 지문(Hash)만 소유합니다.</p>
+            <p style="font-size: 0.8rem; color: #888; margin-top: 10px;">* 서버는 실제 비밀번호의 원본을 알 수 없으며 수학적 지문(Hash)만 소유합니다.</p>
         </div>
     </section>
 
     <section>
         <h2>Step 2. 로그인 및 증명 생성 (Proving)</h2>
         <div class="process-box">
-            <div class="process-title">🧠 브라우저 내 증명 연산</div>
-            <p>DB에서 해시를 가져와 <b>사용자의 PC</b>에서 증명을 계산합니다.</p>
+            <div class="process-title">🧠 브라우저 내 증명 연산 (Client-side)</div>
+            <p>ID에 대응된 해시를 DB에서 로드한 후, 사용자의 기기 내에서 수학적 증명을 생성합니다.</p>
             <div class="data-flow">
-                <span class="data-tag">Supabase</span> 
+                <span class="data-tag" style="background: #e6fffa;">Supabase</span> 
                 <span class="arrow-text">── [SavedHash] ──▶</span> 
-                <span class="data-tag" style="background: #fff9db;">Browser (snarkjs)</span>
+                <span class="data-tag" style="background: #fff9db; border-color: var(--gold);">Browser (snarkjs)</span>
             </div>
-            <div style="margin-top: 15px; padding: 10px; background: #fff5f5; border-radius: 6px; font-size: 0.85rem;">
-                <b>내부 연산:</b> f(입력PW, SavedHash, zKey) ➔ <span style="color: #e03131;">Proof</span> 생성 완료
+            <div class="internal-op">
+                <b>내부 연산:</b> prove(입력PW, SavedHash, proving_key.zkey) ➔ <span style="color: #e03131; font-weight: bold;">Proof</span> 생성 완료
             </div>
         </div>
     </section>
@@ -79,45 +84,31 @@
     <section>
         <h2>Step 3. 검증 및 로그인 성공 (Verification)</h2>
         <div class="process-box">
-            <div class="process-title">🛡️ Render 서버 검증</div>
-            <p>생성된 증명서를 <b>Render Node 서버</b>에 보내 최종 승인을 받습니다.</p>
+            <div class="process-title">🛡️ Render 서버 검증 (Server-side)</div>
+            <p>생성된 증명서를 <b>Render Node 서버</b>에 전송하여 위조 여부를 판독합니다.</p>
             <div class="data-flow">
-                <span class="data-tag">Browser</span> 
+                <span class="data-tag" style="background: #fff9db;">Browser</span> 
                 <span class="arrow-text">── [Proof, PublicSignals] ──▶</span> 
-                <span class="data-tag" style="background: #e3fafd;">Render Server</span>
+                <span class="data-tag" style="background: #e3fafd; border-color: var(--render);">Render Server</span>
+            </div>
+            <div class="internal-op" style="background: #f0f5ff; border-color: #bee3f8;">
+                <b>내부 연산:</b> verify(Proof, PublicSignals, verification_key.json) ➔ <span style="color: #3182ce; font-weight: bold;">True</span> 반환
             </div>
             <div class="data-flow" style="margin-top: 15px;">
-                <span class="data-tag">Render Server</span> 
-                <span class="arrow-text">── "Login Success (JWT/Session)" ──▶</span> 
-                <span class="data-tag">Browser</span>
+                <span class="data-tag" style="background: #e3fafd;">Render Server</span> 
+                <span class="arrow-text">── "Success Token" ──▶</span> 
+                <span class="data-tag">Browser (Main Entry)</span>
             </div>
         </div>
     </section>
 
-    <section>
-        <h2>주고받는 데이터 요약</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>항목</th>
-                    <th>전송되는 데이터</th>
-                    <th>절대 전송되지 않는 데이터</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><b>회원가입</b></td>
-                    <td>ID, Poseidon Hash (기준값)</td>
-                    <td><b>비밀번호 (Plain Text)</b></td>
-                </tr>
-                <tr>
-                    <td><b>로그인</b></td>
-                    <td>zk-SNARK Proof (증명서)</td>
-                    <td><b>비밀번호 (Plain Text)</b></td>
-                </tr>
-            </tbody>
-        </table>
-    </section>
+    <div class="notice-box">
+        <p>본 사이트는 <b>zk-SNARKs</b> 기술 시연을 위해 제작된 데모 프로젝트입니다.</p>
+        <p>사용자 편의성보다 기술적 매커니즘 전달에 집중하여 최소한의 페이지 구성요소만 갖추고 있습니다.</p>
+        <div class="contact">
+            Contact: <b>sunjun0411@yonsei.ac.kr</b>
+        </div>
+    </div>
 
 </div>
 
