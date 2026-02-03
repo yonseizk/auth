@@ -211,7 +211,11 @@
 
                 if (result.success) {
                     addProgress('인증 최종 승인 완료!', 'success');
-                    resultArea.innerHTML = `<div class="result-box success">✨ ${username}님, 환영합니다! (영지식 인증 성공)</div>`;
+                    
+                    setTimeout(() => {
+                        window.location.href = `main.html?user=${encodeURIComponent(username)}`;
+                    }, 1000); 
+                    
                 } else {
                     showError('서버 검증 실패: 유효하지 않은 증명입니다.');
                 }

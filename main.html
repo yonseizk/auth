@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yonsei ZK - 환영합니다</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500&family=Nanum+Myeongjo:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root { --yonsei-blue: #003876; --gold: #d4af37; --light: #f8f8f8; }
+        body { font-family: 'Noto Sans KR', sans-serif; background: var(--light); display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+        .card { background: white; padding: 50px; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; max-width: 500px; width: 90%; border-top: 5px solid var(--yonsei-blue); }
+        h1 { font-family: 'Nanum Myeongjo', serif; color: var(--yonsei-blue); font-size: 2.5rem; margin-bottom: 20px; }
+        p { color: #555; line-height: 1.6; margin-bottom: 30px; }
+        .zk-badge { display: inline-block; padding: 8px 15px; background: #eef4ff; color: var(--yonsei-blue); border-radius: 20px; font-size: 0.8rem; font-weight: 500; margin-bottom: 20px; }
+        .logout-btn { padding: 12px 30px; background: none; border: 1px solid #ddd; color: #888; cursor: pointer; border-radius: 4px; transition: 0.3s; }
+        .logout-btn:hover { background: #f0f0f0; color: #333; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="zk-badge">Zero-Knowledge Proof Verified ✅</div>
+        <h1>인증 성공</h1>
+        <p>축하합니다! 영지식 증명을 통해 비밀번호를 직접 노출하지 않고도 안전하게 본인 인증을 완료하셨습니다.</p>
+        <p id="welcomeMsg">사용자님, 환영합니다!</p>
+        <button class="logout-btn" onclick="location.href='index.html'">로그아웃</button>
+    </div>
+
+    <script>
+        // URL 파라미터에서 아이디 가져오기
+        const urlParams = new URLSearchParams(window.location.search);
+        const username = urlParams.get('user');
+        if (username) {
+            document.getElementById('welcomeMsg').innerHTML = `<strong>${username}</strong>님, 환영합니다!`;
+        }
+    </script>
+</body>
+</html>
