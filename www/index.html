@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZK 인증 시스템 (Local Node Server)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500&family=Nanum+Myeongjo:wght@400;700&display=swap" rel="stylesheet">
+    <script src="snarkjs.min.js"></script>
+    <script src="circomlibjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --primary: #1a1a1a; --secondary: #6b6b6b; --accent: #d4af37; --light: #f8f8f8; --border: #e0e0e0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans KR', sans-serif; background: var(--light); color: var(--primary); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .container { max-width: 480px; width: 100%; }
+        .header { text-align: center; margin-bottom: 40px; }
+        .title { font-family: 'Nanum Myeongjo', serif; font-size: 2.2rem; font-weight: 700; margin-bottom: 10px; }
+        .subtitle { font-size: 0.8rem; color: var(--secondary); text-transform: uppercase; letter-spacing: 4px; }
+        .card { background: white; border-radius: 4px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); padding: 40px; }
+        .tab-container { display: flex; margin-bottom: 30px; border-bottom: 1px solid var(--border); }
+        .tab { flex: 1; padding: 15px; background: none; border: none; font-family: inherit; font-size: 0.9rem; color: var(--secondary); cursor: pointer; position: relative; }
+        .tab.active { color: var(--primary); font-weight: 500; }
+        .tab.active::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 2px; background: var(--accent); }
+        .form-group { margin-bottom: 25px; }
+        .label { display: block; font-size: 0.75rem; color: var(--secondary); letter-spacing: 1px; margin-bottom: 8px; }
+        .input { width: 100%; padding: 12px 0; background: none; border: none; border-bottom: 1px solid var(--border); font-family: inherit; font-size: 1.1rem; outline: none; transition: border-color 0.3s; }
+        .input:focus { border-bottom-color: var(--accent); }
+        .submit-btn { width: 100%; padding: 18px; background: var(--primary); border: none; color: white; font-family: inherit; font-size: 0.9rem; letter-spacing: 2px; cursor: pointer; transition: 0.3s; }
+        .submit-btn:hover { background: #333; }
+        .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .progress-area { margin-top: 20px; display: none; border-top: 1px dotted var(--border); padding-top: 15px; }
+        .progress-area.show { display: block; }
+        .progress-item { padding: 5px 0; font-size: 0.85rem; color: var(--secondary); display: flex; align-items: center; gap: 10px; }
+        .loading-dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+        .result-box { margin-top: 20px; padding: 15px; text-align: center; border-radius: 4px; font-size: 0.9rem; }
+        .result-box.success { background: #f0f8f0; color: #2d5016; border: 1px solid #9bc47d; }
+        .result-box.error { background: #fdf0f0; color: #8b1e1e; border: 1px solid #e8a4a4; }
+        .user-list { margin-top: 20px; font-size: 0.75rem; color: var(--secondary); text-align: center; border-top: 1px solid #eee; padding-top: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1 class="title">영지식 로그인</h1>
+        <p class="subtitle">ZK-Auth with Node.js Server</p>
+    </div>
+
+    <div class="card">
+        <div class="tab-container">
+            <button class="tab active" id="registerTab">회원가입</button>
+            <button class="tab" id="loginTab">로그인</button>
+        </div>
+
+        <div class="form-group">
+            <label class="label">아이디 (ID)</label>
+            <input type="text" class="input" id="usernameField" placeholder="아이디를 입력하세요">
+        </div>
+
+        <div class="form-group">
+            <label class="label">비밀번호 (숫자)</label>
+            <input type="password" class="input" id="passwordField" inputmode="numeric" placeholder="숫자 비밀번호를 입력하세요">
+        </div>
+
+        <button class="submit-btn" id="submitBtn">
+            <span class="btn-text">계정 생성하기</span>
+        </button>
+
+        <div class="progress-area" id="progressArea"></div>
+        <div id="resultArea"></div>
+        
+        <div class="user-list" id="userListArea">사용자 정보를 불러오는 중...</div>
+    </div>
+</div>
+
+<script>
+    // --- 설정 (기존 Supabase 정보 유지) ---
+    const SUPABASE_URL = 'https://vqepxmbxjmtgfebllahs.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxZXB4bWJ4am10Z2ZlYmxsYWhzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk4NzAwMTIsImV4cCI6MjA4NTQ0NjAxMn0.gNqvcS6xqVB6aXMxIKEWkneiTfuEqVv-montaMS2sl0';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let mode = 'register';
+    let poseidon = null;
+
+    const usernameField = document.getElementById('usernameField');
+    const passwordField = document.getElementById('passwordField');
+    const submitBtn = document.getElementById('submitBtn');
+    const progressArea = document.getElementById('progressArea');
+    const resultArea = document.getElementById('resultArea');
+    const userListArea = document.getElementById('userListArea');
+
+    window.addEventListener('load', async () => {
+        await initPoseidon();
+        await updateUserList();
+    });
+
+    async function initPoseidon() {
+        if (!poseidon) poseidon = await circomlibjs.buildPoseidon();
+    }
+
+    function switchTab(newMode) {
+        mode = newMode;
+        usernameField.value = ""; passwordField.value = "";
+        clearAll();
+        if (mode === 'register') {
+            document.getElementById('registerTab').classList.add('active');
+            document.getElementById('loginTab').classList.remove('active');
+            submitBtn.querySelector('.btn-text').textContent = '계정 생성하기';
+        } else {
+            document.getElementById('loginTab').classList.add('active');
+            document.getElementById('registerTab').classList.remove('active');
+            submitBtn.querySelector('.btn-text').textContent = '인증 시작하기';
+        }
+    }
+
+    document.getElementById('registerTab').addEventListener('click', () => switchTab('register'));
+    document.getElementById('loginTab').addEventListener('click', () => switchTab('login'));
+
+    submitBtn.addEventListener('click', async () => {
+        if (mode === 'register') await register();
+        else await login();
+    });
+
+    async function register() {
+        const username = usernameField.value.trim();
+        const password = passwordField.value.trim();
+        if (!username || !password || isNaN(password)) return showError('정보를 올바르게 입력하세요.');
+
+        clearAll();
+        submitBtn.disabled = true;
+
+        try {
+            addProgress('보안 해시 생성 중...');
+            const hashStr = poseidon.F.toString(poseidon([BigInt(password)]));
+
+            addProgress('DB에 사용자 등록 중...');
+            const { error } = await _supabase
+                .from('users')
+                .insert([{ id: username, hash: hashStr }]);
+
+            if (error) throw error;
+
+            addProgress('가입 완료!', 'success');
+            resultArea.innerHTML = `<div class="result-box success">가입 성공! 이제 로그인 탭에서 접속하세요.</div>`;
+            updateUserList();
+            setTimeout(() => switchTab('login'), 1000);
+        } catch (err) {
+            console.error(err);
+            showError('이미 사용 중인 아이디거나 DB 에러입니다.');
+        } finally { submitBtn.disabled = false; }
+    }
+
+    async function login() {
+        const username = usernameField.value.trim();
+        const password = passwordField.value.trim();
+        if (!username || !password) return showError('정보를 입력하세요.');
+
+        clearAll();
+        submitBtn.disabled = true;
+
+        try {
+            addProgress('DB에서 인증 정보 확인 중...');
+            const { data, error } = await _supabase
+                .from('users')
+                .select('hash')
+                .eq('id', username)
+                .single();
+
+            if (error || !data) return showError('아이디를 찾을 수 없습니다.');
+
+            addProgress('내 브라우저에서 영지식 증명(Proof) 생성 중...');
+            // snarkjs 연산을 위해 입력을 BigInt로 확실히 처리합니다.
+            const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+                { 
+                    "password": BigInt(password), 
+                    "savedHash": BigInt(data.hash) 
+                }, 
+                "auth.wasm", 
+                "auth_0001.zkey"
+            );
+
+            addProgress('로컬 검증 서버로 데이터 전송 중...');
+            
+            // --- [핵심] 로컬 Node.js 서버 호출 ---
+            const response = await fetch('http://localhost:3000/verify-proof', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ proof, publicSignals })
+            });
+
+            if (!response.ok) throw new Error('서버 연결 실패');
+
+            const result = await response.json();
+
+            if (result.success) {
+                addProgress('인증 최종 승인 완료!', 'success');
+                resultArea.innerHTML = `<div class="result-box success">✨ ${username}님, 환영합니다! (영지식 인증 성공)</div>`;
+            } else {
+                showError('인증 실패: 잘못된 비밀번호입니다.');
+            }
+        } catch (err) {
+            console.error(err);
+            showError('검증 중 오류 발생 (Node 서버 실행 여부를 확인하세요)');
+        } finally { submitBtn.disabled = false; }
+    }
+
+    async function updateUserList() {
+        const { count, error } = await _supabase.from('users').select('*', { count: 'exact', head: true });
+        if (!error) userListArea.innerHTML = `현재 등록된 사용자: <strong>${count || 0}명</strong>`;
+    }
+
+    function addProgress(message) {
+        progressArea.classList.add('show');
+        const item = document.createElement('div');
+        item.className = 'progress-item';
+        item.innerHTML = `<div class="loading-dot"></div> ${message}`;
+        progressArea.appendChild(item);
+    }
+
+    function showError(message) {
+        resultArea.innerHTML = `<div class="result-box error">${message}</div>`;
+    }
+
+    function clearAll() {
+        progressArea.innerHTML = ''; progressArea.classList.remove('show'); resultArea.innerHTML = '';
+    }
+</script>
+</body>
+</html>
